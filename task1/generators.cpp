@@ -1,8 +1,8 @@
 #include<iostream>
 #include<vector>
-#include<tuple>
 #include<numeric>
 #include<cstring>
+#include<string>
 #include<fstream>
 using namespace std;
 
@@ -14,12 +14,12 @@ struct
 } Flags_inf;
 
 
-void linear_congruent_method(vector<int>& seq, int x_0, int a, int c, int m, int n=10000) 
+void linear_congruent_method(vector<int>& seq, vector<int>& p, int n=10000) 
 {
-  seq.push_back(x_0);
+  seq.push_back(p[0]);
   for (int i = 1; i < n; i++) 
   {
-    seq.push_back((a * seq[i - 1] + c) % m);
+    seq.push_back((p[1] * seq[i - 1] + p[2]) % p[3]);
   }
 }
 
@@ -145,11 +145,26 @@ void blum_blum_shub_algo(vector<int>& seq, int i, int l=10000)
 }
 
 
+int convert_parameters(string& s) 
+{
+  int num = stoi(s.substr(0, s.find(",")));
+  s = s.substr(s.find(",") + 1);
+  return num;
+}
+
+
 vector<int> define_method(string code) 
 {
   vector<int> seq;
   if (code == "lc") {
-    linear_congruent_method(seq, 7, 8, 9, 10, Flags_inf.n);
+    string params = Flags_inf.i;
+    vector<int> p(4);
+    for (int i = 0; i < 4; i++)
+      p[i] = convert_parameters(params);
+    if ( p[3] <= 0 || p[0] < 0 || p[0] > p[3] || 
+         p[1] < 0 || p[1] > p[3] || p[2] < 0 || p[2] > p[3] )
+      return seq;
+    linear_congruent_method(seq, p, Flags_inf.n);
   }
   if (code == "add") {
     
@@ -170,25 +185,50 @@ vector<int> define_method(string code)
     rc4(seq, Flags_inf.i.length(), Flags_inf.n);
   }
   if (code == "rsa") {
+    // TODO доделать параметры i и генерацию чисел
     rsa(seq, stoi(Flags_inf.i), Flags_inf.n);
   }
   if (code == "bbs") {
+    // TODO доделать параметры i и генерацию чисел
     blum_blum_shub_algo(seq, stoi(Flags_inf.i), Flags_inf.n);
   }
   return seq;
 }
 
 
-bool check_parameters() {
+bool check_parameters() 
+{
   if (Flags_inf.method_code == "") {
     return false;
   }
-  // else if (Flags_inf.i == -1) {
-  //   return false;
-  // }
+  else if (Flags_inf.i == "") {
+    return false;
+  }
   return true;
 }
 
+
+void advert() {
+  cout << "The program has the following comands:\n";
+  cout << "/g:<code_method> --- parameter specifies the"
+          " method of IF generations.\ncode_method has the following values:\n";
+  cout << "\tlc - linear congruent generator\n\tadd - additive method\n"
+          "\t5p - five-parametric method\n\tlfsr - linear-feedback shift register\n"
+          "\tnfsr - nonlinear feedback shift register\n\tmt - Mersenne twister\n"
+          "\trc4 - RC4\n\trsa - RSA\n\tbbs - Blum-Blum-Shub\'s algorithm\n\n";
+  cout << "/i:<parameters> --- generator initialization vector.\n";
+  cout << "parameters for methods:\n"
+          "\t<X0,a,c,m> - parameters for \"lc\"\n"
+          "\t<k,j> - parameters for \"add\"\n\t<---> - parameters for \"5p\"\n"
+          "\t<---> - parameters for \"lfsr\"\n\t<---> - parameters for \"nfsr\"\n"
+          "\t<---> - parameters for \"mt\"\n"
+          "\t<key> - parameter for \"rc4\". key - it's 0 or 1 numbers (1 < their length< 257)\n"
+          "\t<---> - parameters for \"rsa\"\n\t<---> - parameters for \"bbs\"\n";
+  cout << "/n:<length> --- amount of generated numbers.\n\n";
+  cout << "/f:<complete_file_name> --- to output generated numbers to file.\n\n";
+  cout << "/h --- complete information about commands.\n\n";
+  
+}
 
 int main(int argc, char* argv[]) {
   string s;
@@ -198,21 +238,20 @@ int main(int argc, char* argv[]) {
     if (argv[i][1] == '/') continue;
     switch (argv[i][1]) {
       case 'g': {
-        char * code = (char *) malloc(4);
+        char * code = (char *) malloc(2);
         strncpy(code, argv[i] + 3, strlen(argv[i]) - 3);
         s = code;
         Flags_inf.method_code = s;
         break;
       }
       case 'i': {
-        // TODO придумать ввод нескольких параметров
         char* num = (char *) malloc(256);
         strncpy(num, argv[i] + 3, strlen(argv[i]) - 3);
         Flags_inf.i = num;
         break;
       }
       case 'n': {
-        char * n = (char *) malloc(5);
+        char * n = (char *) malloc(2);
         strncpy(n, argv[i] + 3, strlen(argv[i]) - 3);
         s = n;
         Flags_inf.n = stoi(s);
@@ -229,7 +268,8 @@ int main(int argc, char* argv[]) {
       }
         break;
       case 'h': {
-
+        advert();
+        return 0;
       }
         break;
       default: {
@@ -246,7 +286,8 @@ int main(int argc, char* argv[]) {
   vector<int> seq;
   seq = define_method(Flags_inf.method_code);
   if (seq.size() == 0) {
-    cout << "You died!";
+    cout << "Incorrect parameters input!\n";
+    return 0;
   }
   ofstream out;
   out.open(Flags_inf.filename);
