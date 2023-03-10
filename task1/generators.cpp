@@ -31,6 +31,10 @@ void additive_method(vector<int>& seq, int n=10000)
 
 void get_key_for_rc4(vector<int>& key, string num) {
   for (int i = 0; i < num.length(); i++) {
+    if (num[i] != '0' && num[i] != '1') {
+      key.clear();
+      break;
+    } 
     key.push_back((int) num[i] - '0');
   }
 }
@@ -39,6 +43,9 @@ void rc4(vector<int>& seq, int b_len, int n=10000)
 {
   vector<int> k, s(b_len);
   get_key_for_rc4(k, Flags_inf.i);
+  if (k.empty()) {
+    return;
+  }
   for (int i = 0; i < b_len; i++) s[i] = i;
   int i, j = 0, t;
   for (i = 0; i < b_len; i++) 
@@ -85,9 +92,11 @@ int gen_rand_num(int upp, int low)
   return n;
 }
 
-long long power(long long base, long long exp, int mod) {
+long long power(long long base, long long exp, int mod) 
+{
    long long res = 1;
-   while (exp > 0) {
+   while (exp > 0) 
+   {
       if (exp % 2 == 1)
          res= (res * base) % mod;
       exp = exp >> 1;
@@ -157,8 +166,8 @@ vector<int> define_method(string code)
 {
   vector<int> seq;
   if (code == "lc") {
-    string params = Flags_inf.i;
     vector<int> p(4);
+    string params = Flags_inf.i;
     for (int i = 0; i < 4; i++)
       p[i] = convert_parameters(params);
     if ( p[3] <= 0 || p[0] < 0 || p[0] > p[3] || 
@@ -186,7 +195,16 @@ vector<int> define_method(string code)
   }
   if (code == "rsa") {
     // TODO доделать параметры i и генерацию чисел
-    rsa(seq, stoi(Flags_inf.i), Flags_inf.n);
+    vector<int> p(2);
+    // string params = Flags_inf.i;
+    // for (int i = 0; i < 2; i++)
+    //   p[i] = convert_parameters(params);
+    // if (p[0] >= p[1] || p[0] <= 0 || p[1] <= 0)
+    //   return seq;
+    int i = stoi(Flags_inf.i);
+    if (i <= 0)
+      return seq;
+    rsa(seq, i, Flags_inf.n);
   }
   if (code == "bbs") {
     // TODO доделать параметры i и генерацию чисел
@@ -208,26 +226,58 @@ bool check_parameters()
 }
 
 
-void advert() {
-  cout << "The program has the following comands:\n";
-  cout << "/g:<code_method> --- parameter specifies the"
-          " method of IF generations.\ncode_method has the following values:\n";
-  cout << "\tlc - linear congruent generator\n\tadd - additive method\n"
-          "\t5p - five-parametric method\n\tlfsr - linear-feedback shift register\n"
-          "\tnfsr - nonlinear feedback shift register\n\tmt - Mersenne twister\n"
-          "\trc4 - RC4\n\trsa - RSA\n\tbbs - Blum-Blum-Shub\'s algorithm\n\n";
-  cout << "/i:<parameters> --- generator initialization vector.\n";
-  cout << "parameters for methods:\n"
-          "\t<X0,a,c,m> - parameters for \"lc\"\n"
-          "\t<k,j> - parameters for \"add\"\n\t<---> - parameters for \"5p\"\n"
-          "\t<---> - parameters for \"lfsr\"\n\t<---> - parameters for \"nfsr\"\n"
-          "\t<---> - parameters for \"mt\"\n"
-          "\t<key> - parameter for \"rc4\". key - it's 0 or 1 numbers (1 < their length< 257)\n"
-          "\t<---> - parameters for \"rsa\"\n\t<---> - parameters for \"bbs\"\n";
-  cout << "/n:<length> --- amount of generated numbers.\n\n";
-  cout << "/f:<complete_file_name> --- to output generated numbers to file.\n\n";
-  cout << "/h --- complete information about commands.\n\n";
-  
+void advert(string par="") {
+  if (par == "") {
+    cout << "The program has the following commands:\n";
+    cout << "/g:<code_method> --- parameter specifies the"
+            " method of IF generations.\ncode_method has the following values:\n";
+    cout << "\tlc - linear congruent generator\n\tadd - additive method\n"
+            "\t5p - five-parametric method\n\tlfsr - linear-feedback shift register\n"
+            "\tnfsr - nonlinear feedback shift register\n\tmt - Mersenne twister\n"
+            "\trc4 - RC4\n\trsa - RSA\n\tbbs - Blum-Blum-Shub\'s algorithm\n\n";
+    cout << "/i:<parameters> --- generator initialization vector.\n";
+    cout << "parameters for methods:\n"
+            "\t<X0,a,c,m> - parameters for \"lc\"\n"
+            "\t<k,j> - parameters for \"add\"\n\t<---> - parameters for \"5p\"\n"
+            "\t<---> - parameters for \"lfsr\"\n\t<---> - parameters for \"nfsr\"\n"
+            "\t<---> - parameters for \"mt\"\n"
+            "\t<key> - parameter for \"rc4\". key - it's 0 or 1 numbers (1 < their length< 257)\n"
+            "\t<---> - parameters for \"rsa\"\n\t<---> - parameters for \"bbs\"\n";
+    cout << "/n:<length> --- amount of generated numbers.\n\n";
+    cout << "/f:<complete_file_name> --- to output generated numbers to file.\n\n";
+    cout << "/h --- complete information about commands.\n\n";
+  }
+  // TODO
+  else if (par == "lc") {
+    cout << "The following parameters must be entered for correct operation:\n";
+    cout << "/i:<X0,a,c,m> - parameters for \"lc,\"\n where 0 < X0 < n - initial element";
+  }
+  else if (par == "add") {
+
+  }
+  else if (par == "5p") {
+
+  }
+  else if (par == "lfsr") {
+
+  }
+  else if (par == "nfsr") {
+
+  }
+  else if (par == "mt") {
+
+  }
+  else if (par == "rc4") {
+    cout << "The following parameters must be entered for correct operation:\n\n";
+    cout << "/i:<sequence of bits> - sequence of bits have length more then 0 and less then 257\n";
+    cout<< "Also you can use /n:<length> to set length of the sequence of numbers 0 < n < 10001\n";
+  }
+  else if (par == "rsa") {
+
+  }
+  else if (par == "bbs") {
+
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -285,8 +335,9 @@ int main(int argc, char* argv[]) {
   }
   vector<int> seq;
   seq = define_method(Flags_inf.method_code);
-  if (seq.size() == 0) {
+  if (seq.empty()) {
     cout << "Incorrect parameters input!\n";
+    advert(Flags_inf.method_code);
     return 0;
   }
   ofstream out;
@@ -297,6 +348,8 @@ int main(int argc, char* argv[]) {
       out << el << ' ';
   }
   out.close();
+  cout << "\nThe sequence of random numbers was generated successfully "
+          "and written to the file called rnd.txt\n";
   cout << endl;
   return 0;
 }
