@@ -16,17 +16,20 @@ struct
 
 void linear_congruent_method(vector<int>& seq, vector<int>& p, int n=10000) 
 {
-  seq.push_back(p[0]);
+  seq.push_back(p[3]);
   for (int i = 1; i < n; i++) 
   {
-    seq.push_back((p[1] * seq[i - 1] + p[2]) % p[3]);
+    seq.push_back((p[1] * seq[i - 1] + p[2]) % p[0]);
   }
 }
 
 
-void additive_method(vector<int>& seq, int n=10000) 
+void additive_method(vector<int>& seq, vector<int>& p, int n=10000) 
 {
-
+  seq.push_back(p[p.size() - p[1]] % p[0]);
+  seq.push_back(p[p.size() - p[2]] % p[0]);
+  for (int i = 0; i < n; i++)
+    seq.push_back((seq[i - 1] + seq[i - 2]) % p[0]);
 }
 
 void get_key_for_rc4(vector<int>& key, string num) {
@@ -105,9 +108,9 @@ long long power(long long base, long long exp, int mod)
    return res;
 }
 
-void rsa(vector<int>& seq, int i, int l=10000)
+void rsa(vector<int>& seq, int b, int l, int n=10000)
 {
-  int low = get_bitrait(i);
+  int low = get_bitrait(b);
   int upp = low * 10 - 1;
   int p = gen_rand_num(upp, low);
   int q = gen_rand_num(upp, low);
@@ -120,11 +123,15 @@ void rsa(vector<int>& seq, int i, int l=10000)
   cout << "p=" << p << " q=" << q << " e=" << e << " n=" << n << endl;
   seq.push_back(gen_rand_num(n - 1, 1));
   int x;
-  for (int i = 1; i < l; i++)
+  string s;
+  for (int i = 1; i < n; i++)
   {
-    // seq.push_back((power(seq[i - 1], e, n)) % 10);
+    // s = "";
+    // for (int j = 0; j < l; j++) {
+    //   s += to_string(power(seq[i - 1], e, n) & 1);
+    // }
+    // seq.push_back(stoi(s, nullptr, 2));
     seq.push_back(power(seq[i - 1], e, n));
-
   }
 }
 
@@ -146,8 +153,6 @@ void blum_blum_shub_algo(vector<int>& seq, int i, int l=10000)
     x = (rand() % (upp - low + 1)) + low;
   for (int i = 0; i < l; i++)
   {
-    // seq.push_back((power(seq[i - 1], e, n)) % 10);
-
     seq.push_back(power(x, 2, n) & 1);
     x = (rand() % (upp - low + 1)) + low;
   }
@@ -157,8 +162,25 @@ void blum_blum_shub_algo(vector<int>& seq, int i, int l=10000)
 int convert_parameters(string& s) 
 {
   int num = stoi(s.substr(0, s.find(",")));
-  s = s.substr(s.find(",") + 1);
+  string tmp = s.substr(s.find(",") + 1);
+  if (s == tmp) 
+    return -1;
+  s = tmp;
   return num;
+}
+
+void find_multiply_of_number(int aM1, int m) {
+  int k = 2;
+  while (k <= m / 2) {
+    if (m % k == 0 && check_prime(k) && aM1 % k == 0)
+      break;
+    k++;
+  }
+  if (k <= m / 2)
+    cout << "a - 1 is a multiple of p = " << k << " that "
+            "is a divisor of m\n";
+  else
+    cout << "There is no prime number p such that a is a multiple of p\n";
 }
 
 
@@ -170,13 +192,41 @@ vector<int> define_method(string code)
     string params = Flags_inf.i;
     for (int i = 0; i < 4; i++)
       p[i] = convert_parameters(params);
-    if ( p[3] <= 0 || p[0] < 0 || p[0] > p[3] || 
-         p[1] < 0 || p[1] > p[3] || p[2] < 0 || p[2] > p[3] )
+    if ( p[0] <= 0 || p[3] < 0 || p[3] > p[0] || 
+         p[1] < 0 || p[1] > p[0] || p[2] < 0 || p[2] > p[0] )
       return seq;
+    cout << "m = " << p[0] << " a = " << p[1] << " c ="
+            " " << p[2] << " x0 = " << p[3] << endl;
+    if (gcd(p[2], p[0]) != 1)
+      cout << "m and c are not mutually prime\n";
+    else
+      cout << "m and c are mutually prime\n";
+    find_multiply_of_number(p[1] - 1, p[0]);
+    if ((p[1] - 1) % 4 == 0 && p[0] % 4 == 0)
+      cout << "a - 1 is a multiply of 4 and m is a multiply of 4\n";
+    else {
+      if (p[0] % 4 == 0)
+        cout << "a - 1 is not a multiply of 4\n";
+      else if ((p[1] - 1) % 4 == 0)
+        cout << "m is not a multiply of 4\n";
+      else
+        cout << "a - 1 is not a multiply of 4 and m is not a multiply of 4\n";
+    }
     linear_congruent_method(seq, p, Flags_inf.n);
   }
   if (code == "add") {
-    
+    vector<int> p;
+    string params = Flags_inf.i;
+    int tmp;
+    for (int i = 0; i < 58; i++) {
+      int tmp = convert_parameters(params);
+      if (tmp == -1)
+        break;
+      p.push_back(tmp);
+    }
+    if (p[1] >= p[2] || p[1] < 1 || p[2] < 1 || p[1] > p.size() - 3 || p[2] > p.size() - 3)
+      return seq;
+    additive_method(seq, p, Flags_inf.n);
   }
   if (code == "5p") {
     
@@ -195,16 +245,13 @@ vector<int> define_method(string code)
   }
   if (code == "rsa") {
     // TODO доделать параметры i и генерацию чисел
-    vector<int> p(2);
-    // string params = Flags_inf.i;
-    // for (int i = 0; i < 2; i++)
-    //   p[i] = convert_parameters(params);
-    // if (p[0] >= p[1] || p[0] <= 0 || p[1] <= 0)
-    //   return seq;
-    int i = stoi(Flags_inf.i);
-    if (i <= 0)
+    int b, l;
+    string params = Flags_inf.i;
+    b = convert_parameters(params);
+    l = convert_parameters(params);
+    if (b <= 0 || l <= 0)
       return seq;
-    rsa(seq, i, Flags_inf.n);
+    rsa(seq, b, l, Flags_inf.n);
   }
   if (code == "bbs") {
     // TODO доделать параметры i и генерацию чисел
