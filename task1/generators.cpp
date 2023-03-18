@@ -108,54 +108,50 @@ long long power(long long base, long long exp, int mod)
    return res;
 }
 
-void rsa(vector<int>& seq, int b, int l, int n=10000)
+void rsa(vector<int>& seq, int n, int e, int x0, int l=10000)
 {
-  int low = get_bitrait(b);
-  int upp = low * 10 - 1;
-  int p = gen_rand_num(upp, low);
-  int q = gen_rand_num(upp, low);
-  while (p == q)
-    q = gen_rand_num(upp, low);
-  int n = p * q, f = (p - 1) * (q - 1);
-  int e = gen_rand_num(f - 1, 2);
-  while (gcd(e, f) != 1)
-    e = gen_rand_num(f - 1, 2);
-  cout << "p=" << p << " q=" << q << " e=" << e << " n=" << n << endl;
-  seq.push_back(gen_rand_num(n - 1, 1));
-  int x;
+  vector<int> nums;
+  int num, bit, posl = 0, posr, b = 10;
   string s;
-  for (int i = 1; i < n; i++)
+  cout << "Input parameters:\n";
+  cout << "n=" << n << " e=" << e << " x=" << x0 << endl;
+  nums.push_back(x0);
+  for (int i = 1; i < l; i++)
   {
-    // s = "";
-    // for (int j = 0; j < l; j++) {
-    //   s += to_string(power(seq[i - 1], e, n) & 1);
-    // }
-    // seq.push_back(stoi(s, nullptr, 2));
-    seq.push_back(power(seq[i - 1], e, n));
+    s = "";
+    posr = posl + b;
+    for (int j = posl; j < posr; j++) 
+    {
+      num = power(nums[j - 1], e, n);
+      s += to_string(num & (1 << 0));
+      nums.push_back(num);
+      posl++;
+    }
+    seq.push_back(stoi(s, nullptr, 2));
   }
+  nums.clear();
 }
 
-void blum_blum_shub_algo(vector<int>& seq, int i, int l=10000)
+void blum_blum_shub_algo(vector<int>& seq, int x0, int l=10000)
 {
-  int low = get_bitrait(i);
-  int upp = low * 10 - 1;
-  int p = power((rand() % (upp - low + 1)) + low, 3, 4);
-  while (!check_prime(p))
-    p = power((rand() % (upp - low + 1)) + low, 3, 4);
-  int q = gen_rand_num(upp, low);
-  while (p == q && (!check_prime(q)))
-    q = gen_rand_num(upp, low);
-  int n = p * q;
-  cout << "p=" << p << " q=" << q << " n=" << n << endl;
-  // seq.push_back(gen_rand_num(n - 1, 1));
-  int x = (rand() % (upp - low + 1)) + low;
-  while (gcd(x, n) != 1)
-    x = (rand() % (upp - low + 1)) + low;
-  for (int i = 0; i < l; i++)
+  int num, n = 16637, posl = 0, posr, b = 10;
+  string s;
+  vector<int> nums;
+  nums.push_back(x0);
+  for (int i = 1; i < l; i++)
   {
-    seq.push_back(power(x, 2, n) & 1);
-    x = (rand() % (upp - low + 1)) + low;
+    s = "";
+    posr = posl + b;
+    for (int j = posl; j < posr; j++) 
+    {
+      num = power(nums[j - 1], 2, n);
+      s += to_string(num & (1 << 0));
+      nums.push_back(num);
+      posl++;
+    }
+    seq.push_back(stoi(s, nullptr, 2));
   }
+  nums.clear();
 }
 
 
@@ -163,8 +159,6 @@ int convert_parameters(string& s)
 {
   int num = stoi(s.substr(0, s.find(",")));
   string tmp = s.substr(s.find(",") + 1);
-  if (s == tmp) 
-    return -1;
   s = tmp;
   return num;
 }
@@ -218,12 +212,18 @@ vector<int> define_method(string code)
     vector<int> p;
     string params = Flags_inf.i;
     int tmp;
-    for (int i = 0; i < 58; i++) {
+    p.push_back(convert_parameters(params));
+    p.push_back(convert_parameters(params));
+    for (int i = 2; i < 59; i++) {
       int tmp = convert_parameters(params);
-      if (tmp == -1)
+      if ((tmp == p[i - 1] && tmp == p[i - 2])) {
+        p.pop_back();
         break;
+      }
       p.push_back(tmp);
     }
+    if (p.size() > 58)
+      p.pop_back();
     if (p[1] >= p[2] || p[1] < 1 || p[2] < 1 || p[1] > p.size() - 3 || p[2] > p.size() - 3)
       return seq;
     additive_method(seq, p, Flags_inf.n);
@@ -245,17 +245,23 @@ vector<int> define_method(string code)
   }
   if (code == "rsa") {
     // TODO доделать параметры i и генерацию чисел
-    int b, l;
+    int n, e, x;
     string params = Flags_inf.i;
-    b = convert_parameters(params);
-    l = convert_parameters(params);
-    if (b <= 0 || l <= 0)
+    n = convert_parameters(params);
+    e = convert_parameters(params);
+    x = convert_parameters(params);
+    if (1 > x || x > n)
       return seq;
-    rsa(seq, b, l, Flags_inf.n);
+    rsa(seq, n, e, x, Flags_inf.n);
   }
   if (code == "bbs") {
     // TODO доделать параметры i и генерацию чисел
-    blum_blum_shub_algo(seq, stoi(Flags_inf.i), Flags_inf.n);
+    int x0 = stoi(Flags_inf.i);
+    if (gcd(x0, 16637) != 1) {
+      cout << "x0=" << x0 << " and n=16637 must be reciprocal!\n";
+      return seq;
+    }
+    blum_blum_shub_algo(seq, x0, Flags_inf.n);
   }
   return seq;
 }
