@@ -9,7 +9,7 @@ using namespace std;
 
 
 struct {
-  string filename = "rnd.txt", method_code = "", i = "";
+  string filename = "rnd.dat", method_code = "", i = "";
   int n = 10000;
 } Flags_inf;
 
@@ -22,11 +22,15 @@ void linear_congruent_method(vector<int>& seq, vector<int>& p, int n=10000) {
 }
 
 
-void additive_method(vector<int>& seq, vector<int>& p, int n=10000) {
-  seq.push_back(p[p.size() - p[1]] % p[0]);
-  seq.push_back(p[p.size() - p[2]] % p[0]);
-  for (int i = 0; i < n; i++)
-    seq.push_back((seq[i - 1] + seq[i - 2]) % p[0]);
+void additive_method(vector<int>& seq, vector<int>& p, int m, int k, int j, int n=10000) {
+  int t = p.size(), num;
+  for (int i = 0; i < n; i++) {
+    num = (p[t - k] + p[t - j]) % m;
+    seq.push_back(num);
+    p.push_back(num);
+    t++;
+  }
+    
 }
 
 void five_parameter_method( vector<int>&seq, vector<int> xs, int p, int q1
@@ -102,7 +106,7 @@ void lfsr(vector<int>& seq, vector<int>& coefs, vector<int>& x, int n=10000) {
       for (int i = 1; i < len; i++)
         num = !num != !(coefs[i] * x[i]);
       s += to_string(num);
-      shift_arr(coefs, num, 'l');
+      shift_arr(coefs, num, 'r');
     }
     seq.push_back(stoi(s, nullptr, 2));
   }
@@ -260,10 +264,13 @@ vector<int> define_method(string code) {
   if (code == "add") {
     vector<int> p;
     string params = Flags_inf.i;
-    int tmp;
+    int tmp, m, k, j;
+    m = convert_parameters(params);
+    k = convert_parameters(params);
+    j = convert_parameters(params);
     p.push_back(convert_parameters(params));
     p.push_back(convert_parameters(params));
-    for (int i = 2; i < 59; i++) {
+    for (int i = 2; i < 56; i++) {
       int tmp = convert_parameters(params);
       if ((tmp == p[i - 1] && tmp == p[i - 2])) {
         p.pop_back();
@@ -271,11 +278,11 @@ vector<int> define_method(string code) {
       }
       p.push_back(tmp);
     }
-    if (p.size() > 58)
+    if (p.size() > 55)
       p.pop_back();
-    if (p[1] >= p[2] || p[1] < 1 || p[2] < 1 || p[1] > p.size() - 3 || p[2] > p.size() - 3)
+    if (k >= j || k < 1 || j < 1 || k > p.size() - 3 || j > p.size() - 3)
       return seq;
-    additive_method(seq, p, Flags_inf.n);
+    additive_method(seq, p, m, k, j, Flags_inf.n);
   }
   if (code == "5p") {
     
@@ -482,12 +489,13 @@ int main(int argc, char* argv[]) {
   ofstream out;
   out.open(Flags_inf.filename);
   if (out.is_open()) {
-    for (int el : seq) 
-      out << el << ' ';
+    for (int i = 0; i < Flags_inf.n - 1; i++)
+      out << seq[i] << ',';
+    out << seq[Flags_inf.n - 1];
   }
   out.close();
   cout << "\nThe sequence of random numbers was generated successfully "
-          "and written to the file called rnd.txt\n";
+          "and written to the file called rnd.dat\n";
   cout << endl;
   return 0;
 }
