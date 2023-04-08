@@ -557,23 +557,18 @@ int main(int argc, char* argv[]) {
     if (argv[i][1] == '/') continue;
     switch (argv[i][1]) {
       case 'g': {
-        char * code = (char *) malloc(2);
-        strncpy(code, argv[i] + 3, strlen(argv[i]) - 3);
-        s = code;
-        Flags_inf.method_code = s;
+        s = argv[i];
+        Flags_inf.method_code = s.erase(0, 3);
         break;
       }
       case 'i': {
-        char* num = (char *) malloc(1024);
-        strncpy(num, argv[i] + 3, strlen(argv[i]) - 3);
-        Flags_inf.i = num;
+        s = argv[i];
+        Flags_inf.i = s.erase(0, 3);
         break;
       }
       case 'n': {
-        char * n = (char *) malloc(2);
-        strncpy(n, argv[i] + 3, strlen(argv[i]) - 3);
-        s = n;
-        Flags_inf.n = stoi(s);
+        s = argv[i];
+        Flags_inf.n = stoi(s.erase(0, 3));
         if (Flags_inf.n > 10000) {
           cout << "Size of sequence cannot be more 10000!\n";
           return 0;
@@ -581,9 +576,8 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 'f': {
-        char * f = (char *) malloc(5);
-        strncpy(f, argv[i] + 3, strlen(argv[i]) - 3);
-        Flags_inf.filename = f;
+        s = argv[i];
+        Flags_inf.filename = s.erase(0, 3);
       }
         break;
       case 'h': {
@@ -591,10 +585,6 @@ int main(int argc, char* argv[]) {
         return 0;
       }
         break;
-      default: {
-        cout << "Something wrong... Please enter \'/h\' to see information\n";
-        return 0;
-      }
     }
   }
   if (!check_parameters()) {
