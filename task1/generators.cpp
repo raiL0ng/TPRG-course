@@ -13,6 +13,7 @@ struct {
   int n = 10000;
 } Flags_inf;
 
+
 // For mersenne twister method
 const int mt_p = 624;
 const int mt_u = 11;
@@ -47,11 +48,10 @@ void additive_method(vector<int>& seq, vector<int>& p, int m, int k, int j, int 
 }
 
 
-void five_parameter_method( vector<int>&seq, vector<int>& xs, int p, int q1
+void five_parameter_method( vector<int>&seq, vector<bool>& xs, int p, int q1
                           , int q2, int q3, int w, int n=10000 ) {
   int num, k = 0;
   string s;
-  vector<int> nums;
   for (int i = 1; i < n; i++) {
     s = "";
     for (int j = 0; j < w; j++) {
@@ -62,11 +62,10 @@ void five_parameter_method( vector<int>&seq, vector<int>& xs, int p, int q1
     }
     seq.push_back(stoi(s, nullptr, 2));
   }
-  nums.clear();
 }
 
 
-void get_binaryarr(vector<int>& x, int num) {
+void get_binaryarr(vector<bool>& x, int num) {
   int d = 0;
   for (int i = 0; i < 33; i++) {
     if (pow(2, i) > num) {
@@ -84,13 +83,13 @@ void get_binaryarr(vector<int>& x, int num) {
 }
 
 
-void shift_arr(vector<int>& a, int new_el, char fl='l') {
+void shift_arr(vector<bool>& a, int new_el, char fl='l') {
   if (fl == 'l') {
     a.erase(a.begin());
     a.push_back(new_el);
   }
   else {
-    vector<int> tmp;
+    vector<bool> tmp;
     tmp.push_back(new_el);
     for (int i = 1; i < a.size(); i++)
       tmp.push_back(a[i - 1]);
@@ -99,8 +98,8 @@ void shift_arr(vector<int>& a, int new_el, char fl='l') {
 }
 
 
-void lfsr(vector<int>& seq, vector<int>& coefs, vector<int>& x, int n=10000) {
-  int num, len = x.size(), w = 10;
+void lfsr(vector<int>& seq, vector<bool>& coefs, vector<bool>& x, int n=10000) {
+  int num, len = x.size(), w = x.size();
   string s;
   for (int k = 0; k < n; k++) {
     s = "";
@@ -118,7 +117,7 @@ void lfsr(vector<int>& seq, vector<int>& coefs, vector<int>& x, int n=10000) {
 }
 
 
-int get_bit_nfsr(vector<int>& r, int n) {
+int get_bit_nfsr(vector<bool>& r, int n) {
   int b = r[0];
   for (int i = 1; i < n; i++) 
     b ^= r[i];
@@ -127,9 +126,11 @@ int get_bit_nfsr(vector<int>& r, int n) {
 }
 
 
-void nfsr(vector<int>& seq, vector<int>& r1, vector<int>& r2, vector<int>& r3, int n=10000) {
-  int b1, b2, b3, w = 10;
+void nfsr(vector<int>& seq, vector<bool>& r1, vector<bool>& r2, vector<bool>& r3, int n=10000) {
+  int b1, b2, b3, w;
   int n1 = r1.size(), n2 = r2.size(), n3 = r3.size();
+  w = max(n1, n2);
+  w = max(w, n3);
   string s;
   for (int k = 0; k < n; k++) {
     s = "";
@@ -148,9 +149,10 @@ long get_kth_lowest_bits(long long num, int k) {
   return (((1L << k) - 1) & num);
 }
 
+
 template<typename T>
 int count_bits(T num) {
-  int c = 0;
+  int c = 1;
   for (num; num >>= 1;)
     c += 1;
   return c;
@@ -253,7 +255,7 @@ long long power(long long base, long long exp, int mod) {
 
 
 void rsa(vector<int>& seq, int n, int e, int x0, int l=10000) {
-  int num, w = 10;
+  int num, w = count_bits(x0);
   string s;
   cout << "Input parameters:\n";
   cout << "n=" << n << " e=" << e << " x=" << x0 << endl;
@@ -270,7 +272,7 @@ void rsa(vector<int>& seq, int n, int e, int x0, int l=10000) {
 
 
 void blum_blum_shub_algo(vector<int>& seq, int x0, int l=10000) {
-  int num, n = 16637, w = 10;
+  int num, n = 16637, w = count_bits(x0);
   string s;
   num = x0;
   for (int i = 1; i < l; i++) {
@@ -284,7 +286,7 @@ void blum_blum_shub_algo(vector<int>& seq, int x0, int l=10000) {
 }
 
 
-void get_coeffs_from_string(vector<int>& key, string& s) {
+void get_coeffs_from_string(vector<bool>& key, string& s) {
   string num = s.substr(0, s.find(","));
   for (int i = 0; i < num.length(); i++) {
     if (num[i] != '0' && num[i] != '1') {
@@ -322,10 +324,16 @@ void find_multiply_of_number(int aM1, int m) {
 vector<int> define_method(string code) {
   vector<int> seq;
   if (code == "lc") {
-    vector<int> p(4);
+    vector<int> p;
     string params = Flags_inf.i;
-    for (int i = 0; i < 4; i++)
-      p[i] = convert_parameters(params);
+    for (int i = 0; i < 4; i++) {
+      if (params.find(",") == -1) {
+        p.push_back(convert_parameters(params));
+        break;
+      }
+      p.push_back(convert_parameters(params));
+    }
+    if (p.size() != 4) return seq;
     if ( p[0] <= 0 || p[3] < 0 || p[3] > p[0] || 
          p[1] < 0 || p[1] > p[0] || p[2] < 0 || p[2] > p[0] )
       return seq;
@@ -362,17 +370,20 @@ vector<int> define_method(string code) {
       }
       p.push_back(convert_parameters(params));
     }
-    if (k >= j || k < 1 || j < 1 || k > p.size() - 3 || j > p.size() - 3)
+    if (k >= j || k < 1 || j < 1 || k > p.size() || j > p.size())
       return seq;
     additive_method(seq, p, m, k, j, Flags_inf.n);
   }
   if (code == "5p") {
-    vector<int> xs;
+    vector<bool> xs;
     string params = Flags_inf.i;
     int p, q1, q2, q3, w;
     p = convert_parameters(params);
+    if (params.find(",") == -1) return seq;
     q1 = convert_parameters(params);
+    if (params.find(",") == -1) return seq;
     q2 = convert_parameters(params);
+    if (params.find(",") == -1) return seq;
     q3 = convert_parameters(params);
     w = convert_parameters(params);
     for (int i = 0; i < p; i++) {
@@ -386,7 +397,7 @@ vector<int> define_method(string code) {
   }
   if (code == "lfsr") {
     int x;
-    vector<int> c, xs;
+    vector<bool> c, xs;
     string params = Flags_inf.i;
     get_coeffs_from_string(c, params);
     x = convert_parameters(params);
@@ -396,11 +407,13 @@ vector<int> define_method(string code) {
     lfsr(seq, c, xs, Flags_inf.n);
   }
   if (code == "nfsr") {
-    vector<int> r1, r2, r3;
+    vector<bool> r1, r2, r3;
     string params = Flags_inf.i;
     get_coeffs_from_string(r1, params);
+    if (params.find(",") == -1) return seq;
     get_coeffs_from_string(r2, params);
     get_coeffs_from_string(r3, params);
+    if (r1.size() < 1 || r2.size() < 1 || r3.size() < 1) return seq;
     nfsr(seq, r1, r2, r3, Flags_inf.n);
 
   }
@@ -411,7 +424,6 @@ vector<int> define_method(string code) {
     vector<long> xs;
     initialize_mt(xs, mt_p, x, count_bits(x));
     mt(seq, xs, m, Flags_inf.n);
-    // for (long el : xs) cout << el << ' '; cout << endl;
   }
   if (code == "rc4") {
     vector<int> p;
@@ -429,6 +441,7 @@ vector<int> define_method(string code) {
     int n, e, x;
     string params = Flags_inf.i;
     n = convert_parameters(params);
+    if (params.find(",") == -1) return seq;
     e = convert_parameters(params);
     x = convert_parameters(params);
     if (1 > x || x > n)
@@ -458,7 +471,7 @@ void advert(string par="") {
             "\trc4 - RC4\n\trsa - RSA\n\tbbs - Blum-Blum-Shub\'s algorithm\n\n";
     cout << "/i:<parameters> --- generator initialization vector.\n";
     cout << "parameters for methods:\n"
-            "\t<X0,a,c,m> - parameters for \"lc\"\n"
+            "\t<m,a,c,x0> - parameters for \"lc\"\n"
             "\t<m,k,j,x_1,...x_55> - parameters for \"add\"\n"
             "\t<p,q1,q2,q3,w,x_1...x_p> - parameters for \"5p\"\n"
             "\t<coeffs,num> - parameters for \"lfsr\"\n"
@@ -472,19 +485,20 @@ void advert(string par="") {
   }
   else if (par == "lc") {
     cout << "The following parameters must be entered for correct operation:\n";
-    cout << "/i:<X0,a,c,m> - parameters for \"lc\",\n where 0 < X0 < n - initial element";
+    cout << "/i:<m,a,c,x0> - parameters for \"lc\",\n where  m > 0 - module\n"
+            "\t0 <= a <= m - multiplier\n\t0 <= c <= m - increment\n\t0 <= X0 <= m - initial element\n";
     cout<< "Also you can use /n:<length> to set length of the sequence of numbers 0 < n < 10001\n";
   }
   else if (par == "add") {
     cout << "The following parameters must be entered for correct operation:\n";
     cout << "/i:<m,k,j,x_1,x_2,...,x_55> - parameters for \"add\",\n "
-            "where m - the module, k and j (0 < k < j) - indicies of numbers x_1,x_2,...,x_55";
+            "where m - the module, k and j (0 < k < j) - indicies of numbers x_1,x_2,...,x_55\n";
     cout<< "Also you can use /n:<length> to set length of the sequence of numbers 0 < n < 10001\n";
   }
   else if (par == "5p") {
     cout << "The following parameters must be entered for correct operation:\n";
     cout << "/i:<p,q_1,q_2,q_3,w,x_1,x_2,...,x_p> - parameters for \"5p\",\n "
-            "where p - length of numbers x_1,x_2,...,x_p, q_1, q_2 and q_3"
+            "where p - length of numbers x_1,x_2,...,x_p, q_1, q_2 and q_3\n"
             " - indicies of those numbers x_1,x_2,...,x_55, w - bits number";
     cout<< "Also you can use /n:<length> to set length of the sequence of numbers 0 < n < 10001\n";
   }
@@ -550,7 +564,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 'i': {
-        char* num = (char *) malloc(256);
+        char* num = (char *) malloc(1024);
         strncpy(num, argv[i] + 3, strlen(argv[i]) - 3);
         Flags_inf.i = num;
         break;
@@ -602,7 +616,7 @@ int main(int argc, char* argv[]) {
   }
   out.close();
   cout << "\nThe sequence of random numbers was generated successfully "
-          "and written to the file called rnd.dat\n";
+          "and written to the file called " << Flags_inf.filename << "\n";
   cout << endl;
   return 0;
 }
