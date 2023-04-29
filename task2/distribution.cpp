@@ -112,7 +112,6 @@ void binomial_dist(vector<double>& u, int n, double a, double b) {
 
 
 bool define_method(vector<double>& dist, string code) {
-  double eps = 0.00000001;
   if (code == "st") {
     standard_dist(dist, Flags_inf.n, Flags_inf.p1, Flags_inf.p2);
   }
@@ -126,7 +125,7 @@ bool define_method(vector<double>& dist, string code) {
     normal_dist(dist, Flags_inf.n, Flags_inf.p1, Flags_inf.p2);
   }
   else if (code == "gm") {
-    if (fabs(Flags_inf.p3 + 100000) < eps)
+    if (Flags_inf.p3 == -100000)
       return false;
     gamma_dist(dist, Flags_inf.n, Flags_inf.p1, Flags_inf.p2, Flags_inf.p3);
   }
@@ -185,7 +184,7 @@ double convert_parameters(string& s) {
 
 bool check_parameters() 
 {
-  if (Flags_inf.method_code == "") {
+  if (Flags_inf.method_code == "" || Flags_inf.fileNameRead == "") {
     cout << "Incorrect data! Please enter \'/h\' to see information\n";
     return false;
   }
@@ -242,6 +241,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
   ifstream fin;
+  fin.exceptions(std::ios::badbit | std::ios::failbit) ;
   string seq;
   try {
     fin.open(Flags_inf.fileNameRead);
@@ -249,8 +249,10 @@ int main(int argc, char* argv[]) {
       fin >> seq;
     }
   }
-  catch (const ifstream::failure& e) {
-    cout << "Some problem with file..." << Flags_inf.fileNameRead << "!\n";
+  catch (const std::exception & e) {
+    cerr << "Error: " <<  e.what() << endl;
+    cout << "Some problem with file: " << Flags_inf.fileNameRead << "!\n";
+    return 0;
   }
   fin.close();
   vector<double> dist;
@@ -269,30 +271,25 @@ int main(int argc, char* argv[]) {
   Flags_inf.nmax = nmax + 1;
   Flags_inf.n = dist.size();
   cout << Flags_inf.n << " numbers was read.\n";
-  cout << "Maximal number of secuence: " << Flags_inf.nmax << endl;
+  cout << "Maximal number of secuence: " << Flags_inf.nmax << endl << endl;
   get_U(dist, Flags_inf.n, Flags_inf.nmax);
   bool fl = define_method(dist, Flags_inf.method_code);
-  if (dist.empty()) {
+  if (dist.empty() || !fl) {
     cout << "Incorrect parameters input!\n";
     advert(Flags_inf.method_code);
     return 0;
   }
-  if (!fl) {
-    advert(Flags_inf.method_code);
+  string fout = "distr-" + Flags_inf.method_code + ".dat";
+  ofstream out;
+  out.open(fout);
+  if (out.is_open()) {
+    for (int i = 0; i < Flags_inf.n - 1; i++)
+      out << dist[i] << ',';
+    out << dist[Flags_inf.n - 1];
   }
-  else {
-    string fout = "distr-" + Flags_inf.method_code + ".dat";
-    ofstream out;
-    out.open(fout);
-    if (out.is_open()) {
-      for (int i = 0; i < Flags_inf.n - 1; i++)
-        out << dist[i] << ',';
-      out << dist[Flags_inf.n - 1];
-    }
-    out.close();
-    cout << "\nThe sequence of random numbers was generated successfully "
-            "and written to the file called " << fout << "\n";
-    cout << endl;
-  }
+  out.close();
+  cout << "\nThe sequence of random numbers was generated successfully "
+          "and written to the file called " << fout << "\n";
+  cout << endl;
   return 0;
 }
