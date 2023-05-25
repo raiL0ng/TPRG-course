@@ -3,6 +3,7 @@
 *.fdb_latexmk
 *.log
 *.out
+*.toc
 *.synctex.gz
 *test*.cpp
 _minted*
