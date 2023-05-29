@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 # import matplotlib.gridspec as gridspec
 import numpy as np
-import sys
+import sys, math
 
 Filename = None
 Crit_code = None
@@ -49,9 +49,9 @@ def get_exp_val_and_st_dev() -> None:
   s = 0
   for el in Data:
     s += (el - Exp_val) * (el - Exp_val)
-  Dev = s / len(Data)
+  Dev = math.sqrt(s / len(Data))
   print(f'\nStandard deviation of this sequence is {round(Dev, 3)}\n')
-
+  print(f'\nRelative error of this sequence is {round((Dev / Exp_val) * 100)}%\n')
 
 
 if __name__ == '__main__':
