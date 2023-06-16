@@ -23,7 +23,8 @@ def get_data_from_file() -> list:
 
 
 def print_help():
-  print('help')
+  print('В данной программе определены следующие параметры:\n')
+  print('\t/f:<имя_файла> - с помощью данной команды ')
 
 
 # def choose_mode() -> str:
