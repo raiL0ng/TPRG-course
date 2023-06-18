@@ -272,7 +272,7 @@ void rsa(vector<int>& seq, int n, int e, int x0, int l=10000) {
 
 
 void blum_blum_shub_algo(vector<int>& seq, int x0, int l=10000) {
-  int num, n = 16637, w = count_bits(x0);
+  int num, n = 16637, w = 10;
   string s;
   num = x0;
   for (int i = 1; i < l; i++) {
@@ -422,7 +422,7 @@ vector<int> define_method(string code) {
     int m = convert_parameters(params);
     int x = convert_parameters(params);
     vector<long> xs;
-    initialize_mt(xs, mt_p, x, count_bits(x));
+    initialize_mt(xs, mt_p, x, 32);
     mt(seq, xs, m, Flags_inf.n);
   }
   if (code == "rc4") {
